@@ -12,6 +12,7 @@ client -> akka-http(route) -> 親akka-actor -> 子akka-actor -> リポジトリ(
 - akka-http（apiとして）
 
 #### 利用するライブラリ
+- akka-actor
 - akka-http
 - cats
 
