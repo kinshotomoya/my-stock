@@ -11,8 +11,8 @@ client -> akka-http(route) -> 親akka-actor -> 子akka-actor -> リポジトリ(
 
 ```
 client → akka-http(route) → 親akka-actor → 子akka-actor（外部api叩く用） → usecase -> リポジトリ(外部api叩く)
-　                                         ↓
-                                           → 子akka-actor（なんか処理する用） → usecase
+　                                       ↓
+                                         → 子akka-actor（なんか処理する用） → usecase
 ```                                  
                                            
 ### クライアント
