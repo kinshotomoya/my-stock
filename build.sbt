@@ -4,12 +4,14 @@ ThisBuild / organization := "my-stock"
 
 val AkkaVersion = "2.6.8"
 val AkkaHttpVersion = "10.2.1"
+val GoogleJuiceVersion = "4.1.0"
 
 lazy val root = (project in file("."))
 .settings(
   name := "root",
   libraryDependencies ++= Seq(
     "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion
+    "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+    "com.google.inject" % "guice" % GoogleJuiceVersion
   )
 )
