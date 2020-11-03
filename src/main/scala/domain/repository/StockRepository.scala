@@ -1,11 +1,11 @@
 package domain.repository
 
-import com.google.inject.ImplementedBy
-import repository.StockRepositoryImpl
 
-import scala.concurrent.Future
+import com.jimmoores.quandl.{DataSetRequest, TabularResult}
+import repository.Builder
 
-@ImplementedBy(classOf[StockRepositoryImpl])
+import scala.concurrent.{ExecutionContext, Future}
+
 trait StockRepository {
-  def getStock[A]: Future[A]
+  def getStock(implicit ec: ExecutionContext, requestBuilder: Builder[DataSetRequest]): Future[TabularResult]
 }
