@@ -1,5 +1,7 @@
 package domain
 
+
+
 trait MyStockErrors {
   val message: String
 }

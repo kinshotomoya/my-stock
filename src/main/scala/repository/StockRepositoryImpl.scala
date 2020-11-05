@@ -7,14 +7,16 @@ import com.google.inject.{Inject, Singleton}
 import com.jimmoores.quandl.classic.ClassicQuandlSession
 import com.jimmoores.quandl.{DataSetRequest, Frequency, TabularResult}
 import domain.TimeOutError
+import domain.model.QuandlResult
 import domain.repository.StockRepository
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
+import exts.QuandlImplicits._
 
 @Singleton
 class StockRepositoryImpl @Inject()(actorSystem: ActorSystem) extends StockRepository {
-  override def getStock(implicit ec: ExecutionContext, requestBuilder: Builder[DataSetRequest]): Future[Option[TabularResult]] = {
+  override def getStock(implicit ec: ExecutionContext, requestBuilder: Builder[DataSetRequest]): Future[Option[QuandlResult]] = {
     // ・TabularResultをドメインオブジェクトに変換
 
     val delayed = akka.pattern.after(FiniteDuration(500L, TimeUnit.MILLISECONDS), actorSystem.scheduler)(Future.failed(TimeOutError("timeout error")))
@@ -25,7 +27,7 @@ class StockRepositoryImpl @Inject()(actorSystem: ActorSystem) extends StockRepos
       session.getDataSet(request)
     }
 
-    Future.firstCompletedOf(Seq(delayed, result)).map(Some(_)).recoverWith{
+    Future.firstCompletedOf(Seq(delayed, result)).map(result => Some(result.convertToDomainObject)).recoverWith{
       case _ => Future(None)
     }
   }
