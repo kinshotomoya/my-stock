@@ -10,6 +10,9 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class StockRepositoryImpl extends StockRepository {
   override def getStock(implicit ec: ExecutionContext, requestBuilder: Builder[DataSetRequest]): Future[TabularResult] = {
+    // ・外部api叩いているので、try catchしてあげる
+    // ・Future[Option[]]で返すように変更
+    // ・TabularResultをドメインオブジェクトに変換
     val result: Future[TabularResult] = Future {
       val session: ClassicQuandlSession = ClassicQuandlSession.create()
       val request: DataSetRequest = requestBuilder.build("MULTPL/SP500_REAL_PRICE_MONTH", Frequency.ANNUAL)
