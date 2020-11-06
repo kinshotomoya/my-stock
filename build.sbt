@@ -6,6 +6,9 @@ val AkkaVersion = "2.6.8"
 val AkkaHttpVersion = "10.2.1"
 val GoogleJuiceVersion = "4.1.0"
 val QuandlVersion = "2.0.0"
+val CatsVersion = "2.1.1"
+
+scalacOptions += "-Ypartial-unification"
 
 lazy val root = (project in file("."))
 .settings(
@@ -14,6 +17,7 @@ lazy val root = (project in file("."))
     "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.google.inject" % "guice" % GoogleJuiceVersion,
-    "com.jimmoores" % "quandl-core" % QuandlVersion
+    "com.jimmoores" % "quandl-core" % QuandlVersion,
+    "org.typelevel" %% "cats-core" %CatsVersion 
   )
 )
