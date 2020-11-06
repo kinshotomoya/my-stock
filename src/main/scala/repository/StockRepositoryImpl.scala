@@ -5,25 +5,24 @@ import java.util.concurrent.TimeUnit
 import akka.actor.ActorSystem
 import com.google.inject.{Inject, Singleton}
 import com.jimmoores.quandl.classic.ClassicQuandlSession
-import com.jimmoores.quandl.{DataSetRequest, Frequency, TabularResult}
+import com.jimmoores.quandl.{DataSetRequest, Frequency}
 import domain.TimeOutError
-import domain.model.QuandlResult
+import domain.model.{QuandlResult, StockCode}
 import domain.repository.StockRepository
+import exts.QuandlImplicits._
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
-import exts.QuandlImplicits._
 
 @Singleton
 class StockRepositoryImpl @Inject()(actorSystem: ActorSystem) extends StockRepository {
-  override def getStock(implicit ec: ExecutionContext, requestBuilder: Builder[DataSetRequest]): Future[Option[QuandlResult]] = {
-    // ・TabularResultをドメインオブジェクトに変換
-
+  // TODO: cats使う
+  override def getStock(code: StockCode, frequency: Frequency)(implicit ec: ExecutionContext, requestBuilder: Builder[DataSetRequest]): Future[Option[QuandlResult]] = {
     val delayed = akka.pattern.after(FiniteDuration(500L, TimeUnit.MILLISECONDS), actorSystem.scheduler)(Future.failed(TimeOutError("timeout error")))
 
     val result = Future {
       val session: ClassicQuandlSession = ClassicQuandlSession.create()
-      val request: DataSetRequest = requestBuilder.build("MULTPL/SP500_REAL_PRICE_MONTH", Frequency.ANNUAL)
+      val request: DataSetRequest = requestBuilder.build(code, frequency)
       session.getDataSet(request)
     }
 
