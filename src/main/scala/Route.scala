@@ -20,10 +20,18 @@ object Route{
     implicit val ec: ExecutionContextExecutor = system.dispatchers.lookup("my-fork-join-executor")
     val stockRepository = new StockRepositoryImpl(actorSystem = system)
 
+    // TODO: 多くなってきたら別ファイルに移す
     implicit val resultFormat = jsonFormat1(QuandlResult)
 
 
+
+    // TODO: exceptionハンドリング実装
+    // https://doc.akka.io/docs/akka-http/current/routing-dsl/exception-handling.html
+    // onSuccessを利用すると、ボイラープレートだらけになってしまうので
+    // TODO: リクエストに指標（sp500など）を指定できるようにし、catsのvalidatedを使ってバリデーションかける
     val route = path("hello") {
+      // TODO: 並行してstock apiを叩く処理ついか
+      // TODO: ２つのresponseをOptionTで合成
       val stockInfo: OptionT[Future, QuandlResult] = stockRepository.getStock(StockCode("MULTPL/SP500_REAL_PRICE_MONTH"), Frequency.ANNUAL)
       onSuccess(stockInfo.value) {
         case Some(value) => complete(value)
