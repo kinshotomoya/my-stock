@@ -19,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class StockRepositoryImpl @Inject()(actorSystem: ActorSystem) extends StockRepository {
   override def getStock(code: StockCode, frequency: Frequency)(implicit ec: ExecutionContext, requestBuilder: Builder[DataSetRequest]): OptionT[Future, QuandlResult] = {
-    val delayed = akka.pattern.after(FiniteDuration(500L, TimeUnit.MILLISECONDS), actorSystem.scheduler)(Future.failed(TimeOutError("timeout error")))
+    val delayed = akka.pattern.after(FiniteDuration(5000L, TimeUnit.MILLISECONDS), actorSystem.scheduler)(Future.failed(TimeOutError("timeout error")))
 
     val future = Future {
       val session: ClassicQuandlSession = ClassicQuandlSession.create()

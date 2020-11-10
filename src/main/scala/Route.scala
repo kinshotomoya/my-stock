@@ -2,12 +2,15 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
+import cats.data.OptionT
 import com.jimmoores.quandl.Frequency
-import domain.model.StockCode
+import domain.model.{QuandlResult, StockCode}
 import repository.StockRepositoryImpl
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import spray.json.DefaultJsonProtocol._
 
 
 object Route{
@@ -17,12 +20,14 @@ object Route{
     implicit val ec: ExecutionContextExecutor = system.dispatchers.lookup("my-fork-join-executor")
     val stockRepository = new StockRepositoryImpl(actorSystem = system)
 
+    implicit val resultFormat = jsonFormat1(QuandlResult)
 
-    // TODO: JSONを返せるようにする
+
     val route = path("hello") {
-      stockRepository.getStock(StockCode("MULTPL/SP500_REAL_PRICE_MONTH"), Frequency.ANNUAL)
-      get {
-        complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>hello world</h1>" ))
+      val stockInfo: OptionT[Future, QuandlResult] = stockRepository.getStock(StockCode("MULTPL/SP500_REAL_PRICE_MONTH"), Frequency.ANNUAL)
+      onSuccess(stockInfo.value) {
+        case Some(value) => complete(value)
+        case None => complete(StatusCodes.NotFound)
       }
     }
 

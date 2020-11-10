@@ -18,6 +18,7 @@ lazy val root = (project in file("."))
     "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
     "com.google.inject" % "guice" % GoogleJuiceVersion,
     "com.jimmoores" % "quandl-core" % QuandlVersion,
-    "org.typelevel" %% "cats-core" %CatsVersion 
+    "org.typelevel" %% "cats-core" %CatsVersion,
+    "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion
   )
 )
