@@ -10,10 +10,11 @@ import repository.StockRepositoryImpl
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.server.{ExceptionHandler, Route}
 import spray.json.DefaultJsonProtocol._
 
 
-object Route{
+object Routing{
 
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem("my-system")
@@ -23,19 +24,23 @@ object Route{
     // TODO: 多くなってきたら別ファイルに移す
     implicit val resultFormat = jsonFormat1(QuandlResult)
 
+    // 参考:https://doc.akka.io/docs/akka-http/current/routing-dsl/exception-handling.html
+    implicit def exceptionHandler: ExceptionHandler =
+      ExceptionHandler {
+        case e: Exception => extractUri{uri =>
+          println(e.getMessage) // TODO: ログの設定行う
+          complete(HttpResponse(StatusCodes.InternalServerError))
+        }
+      }
 
-
-    // TODO: exceptionハンドリング実装
-    // https://doc.akka.io/docs/akka-http/current/routing-dsl/exception-handling.html
-    // onSuccessを利用すると、ボイラープレートだらけになってしまうので
     // TODO: リクエストに指標（sp500など）を指定できるようにし、catsのvalidatedを使ってバリデーションかける
-    val route = path("hello") {
+    val route: Route = path("hello") {
       // TODO: 並行してstock apiを叩く処理ついか
       // TODO: ２つのresponseをOptionTで合成
       val stockInfo: OptionT[Future, QuandlResult] = stockRepository.getStock(StockCode("MULTPL/SP500_REAL_PRICE_MONTH"), Frequency.ANNUAL)
       onSuccess(stockInfo.value) {
         case Some(value) => complete(value)
-        case None => complete(StatusCodes.NotFound)
+        case None => complete(HttpResponse(StatusCodes.InternalServerError))
       }
     }
 
