@@ -20,7 +20,7 @@ object Validator {
   }
 
   private def validateLetterSizeIsSmall(stockCodes: List[StockCode]): ValidationResult[List[StockCode]] = {
-    val isValidLetterSize = stockCodes.foldRight(true)((a: StockCode, b: Boolean) => b && a.isBigLetter)
+    val isValidLetterSize = stockCodes.forall(code => code.isBigLetter)
     if(isValidLetterSize) stockCodes.validNec else letterSizeIsSmall.invalidNec
   }
 
