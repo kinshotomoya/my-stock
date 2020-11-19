@@ -15,6 +15,7 @@ import spray.json.RootJsonFormat
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
+import cats._
 
 
 object Routing extends RoutingBase {
@@ -40,14 +41,20 @@ object Routing extends RoutingBase {
         post {
           path("searchStocks") {
             entity(as[RequestCondition]) {condition =>
-              // TODO: conditionをcatsのvalidatedを使ってバリデーションかける
               // TODO: 並行してstock apiを叩く処理追加
               // TODO: ２つのresponseをOptionTで合成
-              val stockInfo: OptionT[Future, QuandlResult] = stockRepository.getStock(StockCode("MULTPL/SP500_REAL_PRICE_MONTH"), Frequency.ANNUAL)
-              onSuccess(stockInfo.value) {
-                case Some(value) => complete(value)
-                case None => complete(HttpResponse(StatusCodes.InternalServerError))
-              }
+              Validator.validateRequestCondition(condition).fold(
+                e => {
+                  complete(e.map(v => v.validationMessage).toChain.toList)
+                },
+                condition => {
+                  val stockInfo: OptionT[Future, QuandlResult] = stockRepository.getStock(StockCode("MULTPL/SP500_REAL_PRICE_MONTH"), Frequency.ANNUAL)
+                  onSuccess(stockInfo.value) {
+                    case Some(value) => complete(value)
+                    case None => complete(HttpResponse(StatusCodes.InternalServerError))
+                  }
+                }
+              )
             }
           }
         }
