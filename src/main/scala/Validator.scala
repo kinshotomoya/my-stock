@@ -3,6 +3,8 @@ import cats.implicits._
 import domain.model.StockCode
 import presentation.RequestCondition
 
+import scala.collection.immutable
+
 
 object Validator {
 
@@ -18,9 +20,8 @@ object Validator {
   }
 
   private def validateLetterSizeIsSmall(stockCodes: List[StockCode]): ValidationResult[List[StockCode]] = {
-    // 続き！！！
-    // 小文字が含まれてたら、invalidにする
-    letterSizeIsSmall.invalidNec
+    val isValidLetterSize = stockCodes.foldRight(true)((a: StockCode, b: Boolean) => b && a.isBigLetter)
+    if(isValidLetterSize) stockCodes.validNec else letterSizeIsSmall.invalidNec
   }
 
 }
