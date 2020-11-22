@@ -4,8 +4,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cats.data.{NonEmptyChain, OptionT, Validated, ValidatedNec}
-import cats.kernel.Semigroup
+import cats.data.OptionT
 import com.jimmoores.quandl.Frequency
 import domain.model.{QuandlResult, StockCode}
 import presentation.RequestCondition
@@ -15,7 +14,6 @@ import spray.json.RootJsonFormat
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
-import cats._
 
 
 object Routing extends RoutingBase {
