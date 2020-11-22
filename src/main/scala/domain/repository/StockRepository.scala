@@ -10,4 +10,5 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait StockRepository {
   def getStock(code: StockCode, frequency: Frequency)(implicit ec: ExecutionContext, requestBuilder: Builder[DataSetRequest]): OptionT[Future, QuandlResult]
+  def getStocks(codes: List[StockCode], frequency: Frequency)(implicit ec: ExecutionContext, requestBuilder: Builder[DataSetRequest]): Future[List[QuandlResult]]
 }

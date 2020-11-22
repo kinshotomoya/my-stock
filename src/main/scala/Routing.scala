@@ -11,6 +11,7 @@ import presentation.RequestCondition
 import repository.StockRepositoryImpl
 import spray.json.DefaultJsonProtocol._
 import spray.json.RootJsonFormat
+import usecase.StockUseCase
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
@@ -22,6 +23,7 @@ object Routing extends RoutingBase {
     implicit val system: ActorSystem = ActorSystem("my-system")
     implicit val ec: ExecutionContextExecutor = system.dispatchers.lookup("my-fork-join-executor")
     val stockRepository = new StockRepositoryImpl(actorSystem = system)
+    val stockUseCase = new StockUseCase(stockRepository)
 
     // TODO: 多くなってきたら別ファイルに移す
 
@@ -45,10 +47,10 @@ object Routing extends RoutingBase {
                   // 続き！！！
                   // TODO: 並行してstock apiを叩く処理追加
                   // TODO: ２つのresponseをOptionTで合成
-                  val stockInfo: OptionT[Future, QuandlResult] = stockRepository.getStock(StockCode("MULTPL/SP500_REAL_PRICE_MONTH"), Frequency.ANNUAL)
-                  onSuccess(stockInfo.value) {
-                    case Some(value) => complete(value)
-                    case None => complete(HttpResponse(StatusCodes.InternalServerError))
+                  val stockInfo: Future[List[QuandlResult]] = stockUseCase.getStocksBy(condition.stockCodes)
+                  onSuccess(stockInfo) {
+                    case l @ List(_) => complete(l)
+                    case Nil => complete(HttpResponse(StatusCodes.NotFound))
                   }
                 }
               )
