@@ -41,13 +41,12 @@ object Routing extends RoutingBase {
         post {
           path("searchStocks") {
             entity(as[RequestCondition]) {condition =>
-              // TODO: 並行してstock apiを叩く処理追加
-              // TODO: ２つのresponseをOptionTで合成
               Validator.validateRequestCondition(condition).fold(
-                e => {
-                  complete(e.map(v => v.validationMessage).toChain.toList)
-                },
+                e => complete(e.map(v => v.validationMessage).toChain.toList),
                 condition => {
+                  // 続き！！！
+                  // TODO: 並行してstock apiを叩く処理追加
+                  // TODO: ２つのresponseをOptionTで合成
                   val stockInfo: OptionT[Future, QuandlResult] = stockRepository.getStock(StockCode("MULTPL/SP500_REAL_PRICE_MONTH"), Frequency.ANNUAL)
                   onSuccess(stockInfo.value) {
                     case Some(value) => complete(value)
