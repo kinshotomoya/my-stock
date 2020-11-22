@@ -3,8 +3,6 @@ import cats.implicits._
 import domain.model.StockCode
 import presentation.RequestCondition
 
-import scala.collection.immutable
-
 
 object Validator {
 
@@ -34,5 +32,5 @@ case object notRegisteredStockCode extends ValidationError {
 }
 
 case object letterSizeIsSmall extends ValidationError {
-  override def validationMessage: String = "大文字で指定してください。"
+  override def validationMessage: String = "大文字の英数字で指定してください。"
 }

@@ -4,8 +4,6 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cats.data.OptionT
-import com.jimmoores.quandl.Frequency
 import domain.model.{QuandlResult, StockCode}
 import presentation.RequestCondition
 import repository.StockRepositoryImpl
@@ -35,6 +33,7 @@ object Routing extends RoutingBase {
       concat(
         get{
           path("init") {
+            println("compiling...")
             complete(HttpResponse(StatusCodes.OK))
           }
         },
@@ -44,13 +43,10 @@ object Routing extends RoutingBase {
               Validator.validateRequestCondition(condition).fold(
                 e => complete(e.map(v => v.validationMessage).toChain.toList),
                 condition => {
-                  // 続き！！！
-                  // TODO: 並行してstock apiを叩く処理追加
-                  // TODO: ２つのresponseをOptionTで合成
                   val stockInfo: Future[List[QuandlResult]] = stockUseCase.getStocksBy(condition.stockCodes)
                   onSuccess(stockInfo) {
                     case l @ List(_) => complete(l)
-                    case Nil => complete(HttpResponse(StatusCodes.NotFound))
+                    case Nil => complete(StatusCodes.NotFound)
                   }
                 }
               )
