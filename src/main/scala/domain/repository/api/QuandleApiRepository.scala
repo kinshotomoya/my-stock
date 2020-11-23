@@ -7,7 +7,7 @@ import repository.Builder
 
 import scala.concurrent.Future
 
-trait QundleApiRepository {
+trait QuandleApiRepository {
   def getStock(code: StockCode, frequency: Frequency)(implicit requestBuilder: Builder[DataSetRequest]): OptionT[Future, QuandlResult]
   def getStocks(codes: List[StockCode], frequency: Frequency)(implicit requestBuilder: Builder[DataSetRequest]): Future[List[QuandlResult]]
 }

@@ -10,7 +10,7 @@ import com.jimmoores.quandl.classic.ClassicQuandlSession
 import com.jimmoores.quandl.{DataSetRequest, Frequency, TabularResult}
 import domain.TimeOutError
 import domain.model.{QuandlResult, StockCode}
-import domain.repository.api.QundleApiRepository
+import domain.repository.api.QuandleApiRepository
 import exts.QuandlImplicits._
 import repository.Builder
 
@@ -18,7 +18,7 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
 @Singleton
-class QundleApiRepositoryImpl @Inject()(actorSystem: ActorSystem) extends QundleApiRepository {
+class QuandleApiRepositoryImpl @Inject()(actorSystem: ActorSystem) extends QuandleApiRepository {
   // 現状ではセッションはプロセス毎に１つだけ作って、それを使い回すようにしているが↓
   // TODO: akka-actorを使うなら、各actorごとにセッション持つべきなので、
   // actorを作る際に、セッションも作ってimplicitで依存しているモジュールに渡す設計にする
@@ -40,7 +40,7 @@ class QundleApiRepositoryImpl @Inject()(actorSystem: ActorSystem) extends Qundle
     }
   }
 
-  override def getStocks(codes: List[StockCode], frequency: Frequency)(implicit requestBuilder: Builder[DataSetRequest]): Future[List[QuandlResult]] = {
+  override def getStocks(codes: List[StockCode], frequency: Frequency = Frequency.ANNUAL)(implicit requestBuilder: Builder[DataSetRequest]): Future[List[QuandlResult]] = {
     // Seq[Future[TabularResult]] -> Future[Seq[TabularResult]]
     val future: Future[List[TabularResult]] = codes.map { code =>
       Future {

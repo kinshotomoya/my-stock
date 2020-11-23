@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import domain.model.{QuandlResult, StockCode}
 import presentation.RequestCondition
-import repository.api.QundleApiRepositoryImpl
+import repository.api.QuandleApiRepositoryImpl
 import repository.mysql.StockRepositoryImpl
 import spray.json.DefaultJsonProtocol._
 import spray.json.RootJsonFormat
@@ -21,16 +21,16 @@ object Routing extends RoutingBase {
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem("my-system")
     implicit val ec: ExecutionContextExecutor = system.dispatchers.lookup("request-response-executor")
-    val qundleApiRepository = new QundleApiRepositoryImpl(actorSystem = system)
+    val quandleApiRepository = new QuandleApiRepositoryImpl(actorSystem = system)
     val stockRepository = new StockRepositoryImpl(system)
-    val stockUseCase = new StockUseCase(qundleApiRepository)
-    val validator = new Validator(system = system, stockRepository = stockRepository)
+    val stockUseCase = new StockUseCase(quandleApiRepository)
+    val validator = new Validator(system = system, quandleApiRepository = quandleApiRepository)
 
     // TODO: 多くなってきたら別ファイルに移す
 
     implicit val resultFormat: RootJsonFormat[QuandlResult] = jsonFormat1(QuandlResult)
     implicit val stockCodeFormat: RootJsonFormat[StockCode] = jsonFormat(StockCode.apply, "value")
-    implicit val conditionFormat: RootJsonFormat[RequestCondition] = jsonFormat1(RequestCondition)
+    implicit val conditionFormat: RootJsonFormat[RequestCondition] = jsonFormat2(RequestCondition)
 
     val route: Route =
       concat(
@@ -41,6 +41,7 @@ object Routing extends RoutingBase {
           }
         },
         post {
+          // stockCodeを入力して、探す
           path("searchStocks") {
             entity(as[RequestCondition]) {condition =>
               validator.validateRequestCondition(condition).fold(

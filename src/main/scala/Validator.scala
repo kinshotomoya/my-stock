@@ -4,25 +4,18 @@ import cats.implicits._
 import com.google.inject.Inject
 import domain.model.StockCode
 import presentation.RequestCondition
-import repository.mysql.StockRepositoryImpl
+import repository.api.QuandleApiRepositoryImpl
 
 
-class Validator @Inject()(system: ActorSystem, stockRepository: StockRepositoryImpl) {
+class Validator @Inject()(system: ActorSystem, quandleApiRepository: QuandleApiRepositoryImpl) {
 
   type ValidationResult[A] = ValidatedNec[ValidationError, A]
 
-  def validateRequestCondition(condition: RequestCondition): ValidationResult[RequestCondition] = {
-    (validateNonRegisterStockCode(condition.stockCodes), validateLetterSizeIsSmall(condition.stockCodes)).mapN((stockCodes, _) => RequestCondition(stockCodes))
-  }
+  def validateRequestCondition(condition: RequestCondition): ValidationResult[RequestCondition] =
+    validateLetterSizeIsSmall(condition.stockCodes).map(stockCodes =>
+      RequestCondition(accountId = condition.accountId, stockCodes = stockCodes)
+    )
 
-  private def validateNonRegisterStockCode(stockCodes: List[StockCode]): ValidationResult[List[StockCode]] = {
-    // 続き
-    // TODO: DBから自分が登録しているstockCodeを取得する
-    // stockRepositoryimpleから取得する
-    // catsのnestedで、いい感じにFuture[Option[A]]などを結合できるようにする
-    // https://typelevel.org/cats/datatypes/nested.html
-    stockCodes.validNec
-  }
 
   private def validateLetterSizeIsSmall(stockCodes: List[StockCode]): ValidationResult[List[StockCode]] = {
     val isValidLetterSize = stockCodes.forall(code => code.isBigLetter)
