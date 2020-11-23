@@ -1,10 +1,13 @@
+import akka.actor.ActorSystem
 import cats.data.ValidatedNec
 import cats.implicits._
+import com.google.inject.Inject
 import domain.model.StockCode
 import presentation.RequestCondition
+import repository.mysql.StockRepositoryImpl
 
 
-object Validator {
+class Validator @Inject()(system: ActorSystem, stockRepository: StockRepositoryImpl) {
 
   type ValidationResult[A] = ValidatedNec[ValidationError, A]
 
@@ -13,7 +16,11 @@ object Validator {
   }
 
   private def validateNonRegisterStockCode(stockCodes: List[StockCode]): ValidationResult[List[StockCode]] = {
+    // 続き
     // TODO: DBから自分が登録しているstockCodeを取得する
+    // stockRepositoryimpleから取得する
+    // catsのnestedで、いい感じにFuture[Option[A]]などを結合できるようにする
+    // https://typelevel.org/cats/datatypes/nested.html
     stockCodes.validNec
   }
 

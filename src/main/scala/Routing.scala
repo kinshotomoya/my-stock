@@ -6,7 +6,8 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import domain.model.{QuandlResult, StockCode}
 import presentation.RequestCondition
-import repository.StockRepositoryImpl
+import repository.api.QundleApiRepositoryImpl
+import repository.mysql.StockRepositoryImpl
 import spray.json.DefaultJsonProtocol._
 import spray.json.RootJsonFormat
 import usecase.StockUseCase
@@ -19,9 +20,11 @@ object Routing extends RoutingBase {
 
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem("my-system")
-    implicit val ec: ExecutionContextExecutor = system.dispatchers.lookup("my-fork-join-executor")
-    val stockRepository = new StockRepositoryImpl(actorSystem = system)
-    val stockUseCase = new StockUseCase(stockRepository)
+    implicit val ec: ExecutionContextExecutor = system.dispatchers.lookup("request-response-executor")
+    val qundleApiRepository = new QundleApiRepositoryImpl(actorSystem = system)
+    val stockRepository = new StockRepositoryImpl(system)
+    val stockUseCase = new StockUseCase(qundleApiRepository)
+    val validator = new Validator(system = system, stockRepository = stockRepository)
 
     // TODO: 多くなってきたら別ファイルに移す
 
@@ -40,7 +43,7 @@ object Routing extends RoutingBase {
         post {
           path("searchStocks") {
             entity(as[RequestCondition]) {condition =>
-              Validator.validateRequestCondition(condition).fold(
+              validator.validateRequestCondition(condition).fold(
                 e => complete(e.map(v => v.validationMessage).toChain.toList),
                 condition => {
                   val stockInfo: Future[List[QuandlResult]] = stockUseCase.getStocksBy(condition.stockCodes)
