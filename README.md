@@ -30,7 +30,9 @@ client → akka-http(route) → 親akka-actor → 子akka-actor（外部api叩�
 ### 外部api
 - [quandl](https://www.quandl.com/tools/full-list)
 世界中の株式・指数（日経平均など）が取得できるapiらしい
+
 ↑過去の数値しか取れないので、使いにくい。
+
 なので、↓に変更
 
 - [rapidapi](https://rapidapi.com/)
