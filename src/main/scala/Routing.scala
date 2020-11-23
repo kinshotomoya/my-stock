@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import domain.model.{QuandlResult, StockCode}
 import presentation.RequestCondition
-import repository.api.QuandleApiRepositoryImpl
+import repository.api.{QuandleApiRepositoryImpl, YahooFinanceApiRepositoryImpl}
 import repository.mysql.StockRepositoryImpl
 import spray.json.DefaultJsonProtocol._
 import spray.json.RootJsonFormat
@@ -21,9 +21,11 @@ object Routing extends RoutingBase {
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem("my-system")
     implicit val ec: ExecutionContextExecutor = system.dispatchers.lookup("request-response-executor")
+
     val quandleApiRepository = new QuandleApiRepositoryImpl(actorSystem = system)
     val stockRepository = new StockRepositoryImpl(system)
-    val stockUseCase = new StockUseCase(quandleApiRepository)
+    val yahooFinanceApiRepositoryImpl = new YahooFinanceApiRepositoryImpl
+    val stockUseCase = new StockUseCase(quandleApiRepository, yahooFinanceApiRepositoryImpl)
     val validator = new Validator(system = system, quandleApiRepository = quandleApiRepository)
 
     // TODO: 多くなってきたら別ファイルに移す
@@ -40,8 +42,8 @@ object Routing extends RoutingBase {
             complete(HttpResponse(StatusCodes.OK))
           }
         },
+        // Quandle APIをベースにしたエンドポイント
         post {
-          // stockCodeを入力して、探す
           path("searchStocks") {
             entity(as[RequestCondition]) {condition =>
               validator.validateRequestCondition(condition).fold(
@@ -57,6 +59,8 @@ object Routing extends RoutingBase {
             }
           }
         }
+        // Yahoo Finance APIをベースにしたエンドポイント
+
       )
 
     val bindingFuture: Future[Http.ServerBinding] = Http().newServerAt("localhost", 8000).bind(route)
