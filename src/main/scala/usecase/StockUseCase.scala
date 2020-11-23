@@ -42,7 +42,7 @@ class StockUseCase @Inject()(stockRepository: QuandleApiRepositoryImpl, yahooFin
   // 1. 名前、グラフ、高値などの値
   // 2. ひもづくビジネスニュース
   // TODO: 1、2は並列で取得するので、akka-actorを使う
-  def detailPage(stockCode: StockCode): Future[Nothing] = {
+  def listStockDetailPage(stockCode: StockCode): Future[Nothing] = {
     ???
   }
 

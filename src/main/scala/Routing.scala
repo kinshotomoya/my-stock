@@ -28,8 +28,6 @@ object Routing extends RoutingBase {
     val stockUseCase = new StockUseCase(quandleApiRepository, yahooFinanceApiRepositoryImpl)
     val validator = new Validator(system = system, quandleApiRepository = quandleApiRepository)
 
-    // TODO: 多くなってきたら別ファイルに移す
-
     implicit val resultFormat: RootJsonFormat[QuandlResult] = jsonFormat1(QuandlResult)
     implicit val stockCodeFormat: RootJsonFormat[StockCode] = jsonFormat(StockCode.apply, "value")
     implicit val conditionFormat: RootJsonFormat[RequestCondition] = jsonFormat2(RequestCondition)

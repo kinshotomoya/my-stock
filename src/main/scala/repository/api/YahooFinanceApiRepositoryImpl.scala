@@ -1,8 +1,18 @@
 package repository.api
 
+import domain.model.StockCode
+import domain.repository.api.YahooFinanceApiRepository
 
-// 続き
+import scala.concurrent.Future
+
+
 // TODO: rakuten.rapid.apiを叩く
-class YahooFinanceApiRepositoryImpl {
+// 続き！！！！！！！！！！
+// TODO: 自分で、rapid-api経由でYahoo apiを叩くclient libraryを作る！
+class YahooFinanceApiRepositoryImpl extends YahooFinanceApiRepository{
+  override def getNews(stockCode: List[StockCode]): Future[Nothing] = ???
 
+  override def getStockInfo(stockCode: StockCode): Future[Nothing] = ???
+
+  override def getStockDetailInfo(stockCode: StockCode): Future[Nothing] = ???
 }
