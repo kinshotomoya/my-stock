@@ -24,8 +24,8 @@ class QuandleApiRepositoryImpl @Inject()(actorSystem: ActorSystem) extends Quand
   // actorを作る際に、セッションも作ってimplicitで依存しているモジュールに渡す設計にする
   // 参考：https://qiita.com/negokaz/items/ba065abcb5ee40c150a9
   private val session: ClassicQuandlSession = ClassicQuandlSession.create()
-  // qundle-apiを叩く用のスレッドプールを作成
-  implicit val ec: ExecutionContextExecutor = actorSystem.dispatchers.lookup("qundle-api-executor")
+  // quandle-apiを叩く用のスレッドプールを作成
+  implicit val ec: ExecutionContextExecutor = actorSystem.dispatchers.lookup("quandle-api-executor")
 
   override def getStock(code: StockCode, frequency: Frequency)(implicit requestBuilder: Builder[DataSetRequest]): OptionT[Future, QuandlResult] = {
     val future = Future {

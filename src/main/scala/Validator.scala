@@ -19,7 +19,6 @@ class Validator @Inject()(system: ActorSystem, quandleApiRepository: QuandleApiR
     if(condition.stockCodes.isEmpty) emptyStockCodes.invalidNec else condition.validNec
   }
 
-
   private def validateLetterSizeIsSmall(condition: RequestCondition): ValidationResult[RequestCondition] = {
     val isValidLetterSize = condition.stockCodes.forall(code => code.isBigLetter)
     if(isValidLetterSize) condition.validNec else letterSizeIsSmall.invalidNec
