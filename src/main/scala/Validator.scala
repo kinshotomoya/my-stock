@@ -2,7 +2,6 @@ import akka.actor.ActorSystem
 import cats.data.ValidatedNec
 import cats.implicits._
 import com.google.inject.Inject
-import domain.model.StockCode
 import presentation.RequestCondition
 import repository.api.QuandleApiRepositoryImpl
 
@@ -12,14 +11,18 @@ class Validator @Inject()(system: ActorSystem, quandleApiRepository: QuandleApiR
   type ValidationResult[A] = ValidatedNec[ValidationError, A]
 
   def validateRequestCondition(condition: RequestCondition): ValidationResult[RequestCondition] =
-    validateLetterSizeIsSmall(condition.stockCodes).map(stockCodes =>
-      RequestCondition(accountId = condition.accountId, stockCodes = stockCodes)
+    (validateStockCodeIsExists(condition), validateLetterSizeIsSmall(condition)).mapN((condition, _) =>
+      RequestCondition(accountId = condition.accountId, stockCodes = condition.stockCodes)
     )
 
+  private def validateStockCodeIsExists(condition: RequestCondition): ValidationResult[RequestCondition] = {
+    if(condition.stockCodes.isEmpty) emptyStockCodes.invalidNec else condition.validNec
+  }
 
-  private def validateLetterSizeIsSmall(stockCodes: List[StockCode]): ValidationResult[List[StockCode]] = {
-    val isValidLetterSize = stockCodes.forall(code => code.isBigLetter)
-    if(isValidLetterSize) stockCodes.validNec else letterSizeIsSmall.invalidNec
+
+  private def validateLetterSizeIsSmall(condition: RequestCondition): ValidationResult[RequestCondition] = {
+    val isValidLetterSize = condition.stockCodes.forall(code => code.isBigLetter)
+    if(isValidLetterSize) condition.validNec else letterSizeIsSmall.invalidNec
   }
 
 }
@@ -33,4 +36,8 @@ case object notRegisteredStockCode extends ValidationError {
 
 case object letterSizeIsSmall extends ValidationError {
   override def validationMessage: String = "大文字の英数字で指定してください。"
+}
+
+case object emptyStockCodes extends ValidationError {
+  override def validationMessage: String = "最低1つのStockCodeを入力してください。"
 }
