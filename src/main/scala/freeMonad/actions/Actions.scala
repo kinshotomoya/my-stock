@@ -58,7 +58,7 @@ object Actions {
 // このオブジェクトをMainで呼び出せるようにする
 object StockService {
   implicit val ec: MessageDispatcher =
-    actorSystem.dispatchers.lookup("request-response-executor")
+    actorSystem.dispatchers.lookup("quandle-api-executor")
 
   // TODO: これを、呼び出す
   def interpreter: Actions ~> Future =
