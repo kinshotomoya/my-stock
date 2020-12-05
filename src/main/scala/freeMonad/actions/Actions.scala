@@ -22,7 +22,7 @@ object Actions {
   case class Search(request: SearchRequest)
       extends Actions[Either[RequestError, SearchResponse]]
 
-  type Action[A] = Free[Actions, A]
+  type Program[A] = Free[Actions, A]
 
   // 2. 次はDSLを定義
   // とりあえず、Free Monadに変換する
@@ -33,15 +33,16 @@ object Actions {
   // search以外にも、delete, updateなどもある想定で
   private def search(
     request: SearchRequest
-  ): Action[Either[RequestError, SearchResponse]] =
+  ): Program[Either[RequestError, SearchResponse]] =
     Free.liftF[Actions, Either[RequestError, SearchResponse]](Search(request))
 
   // 3. 次は、ロジックを作成
   // ここが重要！
   // 副作用を含んでいないので、テストめっちゃしやすくなっている
+  // DBとかをモックする必要がない！
   def searchStocks(
     searchRequest: SearchRequest
-  ): Action[Either[RequestError, SearchResponse]] = {
+  ): Program[Either[RequestError, SearchResponse]] = {
     StockValidator
       .validateSearchRequest(searchRequest)
       .fold(
@@ -60,7 +61,7 @@ object StockService {
   implicit val ec: MessageDispatcher =
     actorSystem.dispatchers.lookup("quandle-api-executor")
 
-  // TODO: これを、呼び出す
+  // TODO: 実際にこれを実行できるようにする
   def interpreter: Actions ~> Future =
     new (Actions ~> Future) {
       override def apply[A](fa: Actions[A]): Future[A] = {
