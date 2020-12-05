@@ -1,30 +1,36 @@
-package usecase
+package defaults.usecase
 
 import cats.data.OptionT
 import com.google.inject.Inject
 import com.jimmoores.quandl.Frequency
-import domain.model.{QuandlResult, StockCode}
-import repository.api.{QuandleApiRepositoryImpl, YahooFinanceApiRepositoryImpl}
+import defaults.domain.model.{QuandlResult, StockCode}
+import defaults.repository.api.{
+  QuandleApiRepositoryImpl,
+  YahooFinanceApiRepositoryImpl
+}
 
 import scala.concurrent.Future
 
-class StockUseCase @Inject()(stockRepository: QuandleApiRepositoryImpl, yahooFinanceApiRepositoryImpl: YahooFinanceApiRepositoryImpl){
+class StockUseCase @Inject()(
+  stockRepository: QuandleApiRepositoryImpl,
+  yahooFinanceApiRepositoryImpl: YahooFinanceApiRepositoryImpl
+) {
 
   // ------------------Quandle APIをベースにしている--------------
 
   def getStocksBy(stockCodes: List[StockCode]): Future[List[QuandlResult]] = {
-    val stockList: Future[List[QuandlResult]] = stockRepository.getStocks(stockCodes, Frequency.ANNUAL)
+    val stockList: Future[List[QuandlResult]] =
+      stockRepository.getStocks(stockCodes, Frequency.ANNUAL)
     stockList
   }
 
   def getStockBy(stockCode: StockCode): OptionT[Future, QuandlResult] = {
-    val stockList: OptionT[Future, QuandlResult] = stockRepository.getStock(stockCode, Frequency.ANNUAL)
+    val stockList: OptionT[Future, QuandlResult] =
+      stockRepository.getStock(stockCode, Frequency.ANNUAL)
     stockList
   }
 
   // ------------------Quandle APIをベースにしている--------------
-
-
 
   // ------------------Yahoo Finance APIをベースにしている--------------
 
@@ -37,7 +43,6 @@ class StockUseCase @Inject()(stockRepository: QuandleApiRepositoryImpl, yahooFin
     ???
   }
 
-
   // お気に入りしているstockCodeの詳細情報を取得する
   // 1. 名前、グラフ、高値などの値
   // 2. ひもづくビジネスニュース
@@ -45,8 +50,6 @@ class StockUseCase @Inject()(stockRepository: QuandleApiRepositoryImpl, yahooFin
   def listStockDetailPage(stockCode: StockCode): Future[Nothing] = {
     ???
   }
-
-
   // ------------------Yahoo Finance APIをベースにしている--------------
 
 }

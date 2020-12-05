@@ -1,6 +1,6 @@
-package domain.repository.mysql
+package defaults.domain.repository.mysql
 
-import domain.model.StockCode
+import defaults.domain.model.StockCode
 
 import scala.concurrent.Future
 

@@ -1,6 +1,6 @@
-package domain.repository.api
+package defaults.domain.repository.api
 
-import domain.model.StockCode
+import defaults.domain.model.StockCode
 
 import scala.concurrent.Future
 
