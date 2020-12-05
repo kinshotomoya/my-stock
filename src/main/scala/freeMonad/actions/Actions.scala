@@ -23,6 +23,7 @@ object Actions {
       extends Actions[Either[RequestError, SearchResponse]]
 
   type Program[A] = Free[Actions, A]
+  type Result[A] = Either[RequestError, A]
 
   // 2. 次はDSLを定義
   // とりあえず、Free Monadに変換する
@@ -31,10 +32,8 @@ object Actions {
 
   // exeuteメソッドで、より抽象化している
   // search以外にも、delete, updateなどもある想定で
-  private def search(
-    request: SearchRequest
-  ): Program[Either[RequestError, SearchResponse]] =
-    Free.liftF[Actions, Either[RequestError, SearchResponse]](Search(request))
+  private def search(request: SearchRequest): Program[Result[SearchResponse]] =
+    Free.liftF[Actions, Result[SearchResponse]](Search(request))
 
   // 3. 次は、ロジックを作成
   // ここが重要！
@@ -42,12 +41,12 @@ object Actions {
   // DBとかをモックする必要がない！
   def searchStocks(
     searchRequest: SearchRequest
-  ): Program[Either[RequestError, SearchResponse]] = {
+  ): Program[Result[SearchResponse]] = {
     StockValidator
       .validateSearchRequest(searchRequest)
       .fold(
         errors =>
-          Free.pure[Actions, Either[RequestError, SearchResponse]](
+          Free.pure[Actions, Result[SearchResponse]](
             Left(RequestErrors(errors.toNonEmptyList.toList.mkString(",")))
         ),
         request => execute(Search(request))
