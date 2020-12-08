@@ -1,19 +1,13 @@
 package freeMonad.actions
 
-import akka.dispatch.MessageDispatcher
 import cats.free.Free
-import cats.~>
-import freeMonad.Main.actorSystem
 import freeMonad.Validators.StockValidator
-import freeMonad.actions.Actions.{Actions, Search}
 import freeMonad.domains.{
   RequestError,
   RequestErrors,
   SearchRequest,
   SearchResponse
 }
-
-import scala.concurrent.Future
 
 // 1. まず、ASTを作成する
 // 株式を取得するためのSearch Actionをまずは定義
@@ -30,7 +24,7 @@ object Actions {
   private def execute[A](action: Actions[A]): Free[Actions, A] =
     Free.liftF[Actions, A](action)
 
-  // exeuteメソッドで、より抽象化している
+  // executeメソッドで、より抽象化している
   // search以外にも、delete, updateなどもある想定で
   private def search(request: SearchRequest): Program[Result[SearchResponse]] =
     Free.liftF[Actions, Result[SearchResponse]](Search(request))
@@ -52,29 +46,4 @@ object Actions {
         request => execute(Search(request))
       )
   }
-}
-
-// 4. interpreterを作成
-// このオブジェクトをMainで呼び出せるようにする
-object StockService {
-  implicit val ec: MessageDispatcher =
-    actorSystem.dispatchers.lookup("quandle-api-executor")
-
-  // TODO: 実際にこれを実行できるようにする
-  def interpreter: Actions ~> Future =
-    new (Actions ~> Future) {
-      override def apply[A](fa: Actions[A]): Future[A] = {
-        fa match {
-          case Search(request) => {
-            println(s"${request.stockCode}でstockを検索しています・・・")
-            // TODO: 実際にrepositoryをインジェクトして、そっから値を返すようにする
-            Future {
-              val either: Either[RequestError, SearchResponse] =
-                Right(SearchResponse())
-              either
-            }
-          }
-        }
-      }
-    }
 }

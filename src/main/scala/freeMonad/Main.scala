@@ -6,6 +6,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
+import freeMonad.actions.Actions
 import freeMonad.domains.{SearchRequest, StockCode}
 import spray.json.DefaultJsonProtocol._
 import spray.json.RootJsonFormat
@@ -24,11 +25,13 @@ object Main {
     SearchRequest
   )
 
+  val stockUseCase: StockUseCase[Future] = StockUseCase()
+
   val routes = concat(get {
     path("searchStocks") {
-      entity(as[SearchRequest]) { _: SearchRequest =>
+      entity(as[SearchRequest]) { request: SearchRequest =>
         {
-          onSuccess(Future("sucess")) { _ =>
+          onSuccess(stockUseCase.run(Actions.searchStocks(request))) { _ =>
             complete(HttpResponse(StatusCodes.OK))
           }
         }
