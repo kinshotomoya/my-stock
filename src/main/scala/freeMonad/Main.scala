@@ -39,5 +39,5 @@ object Main {
     }
   })
 
-  Http().newServerAt("localhost", 8000)
+  Http().newServerAt("localhost", 8000).bind(routes)
 }
