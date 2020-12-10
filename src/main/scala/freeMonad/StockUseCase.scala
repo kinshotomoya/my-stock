@@ -1,11 +1,11 @@
 package freeMonad
 
+import akka.actor.ActorSystem
 import akka.dispatch.MessageDispatcher
 import cats.~>
-import freeMonad.Main.actorSystem
 import freeMonad.actions.Actions
 import freeMonad.actions.Actions.{Actions, Program, Search}
-import freeMonad.domains.{RequestError, SearchResponse}
+import freeMonad.domains.{RequestErrors, SearchRequest, SearchResponse, Stock}
 
 import scala.concurrent.Future
 
@@ -15,35 +15,45 @@ trait StockUseCase[F[_]] {
 
 // 4. interpreterを作成
 object StockUseCase {
-  implicit val ec: MessageDispatcher =
-    actorSystem.dispatchers.lookup("quandle-api-executor")
+  private def searchStock(request: SearchRequest,
+                          stockRepository: StockRepository)(
+    implicit useCaseExecutor: MessageDispatcher
+  ): Future[Either[RequestErrors, SearchResponse]] = {
+    println(s"${request.stockCode}でstockを検索しています・・・")
+    stockRepository.fetchStock(request.stockCode) map {
+      case Some(stock: Stock) => Right(SearchResponse(stock))
+      case None               => Left(RequestErrors("該当のstockは存在しません。"))
+    }
+  }
 
-  // TODO: このメソッドは、ここで定義してもいいのか？もっといい場所があるはず！
-  private def interpreter: Actions ~> Future =
+  private def interpreter(
+    stockRepository: StockRepository
+  )(implicit useCaseExecutor: MessageDispatcher): Actions ~> Future = {
+
     new (Actions ~> Future) {
       override def apply[A](fa: Actions[A]): Future[A] = {
         fa match {
-          case Search(request) => {
-            println(s"${request.stockCode}でstockを検索しています・・・")
-            // TODO: 実際にrepositoryをインジェクトして、そっから値を返すようにする
-            Future {
-              val either: Either[RequestError, SearchResponse] =
-                Right(SearchResponse())
-              either
-            }
-          }
+          case Search(request: SearchRequest) =>
+            searchStock(request, stockRepository)
         }
       }
     }
+  }
 
-  def apply(): StockUseCase[Future] = {
+  def apply(
+    stockRepository: StockRepository
+  )(implicit actorSystem: ActorSystem): StockUseCase[Future] = {
+    // useCaseレイヤーのExecutionContextを作成
+    implicit val ec: MessageDispatcher =
+      actorSystem.dispatchers.lookup("quandle-api-executor")
+
     new StockUseCase[Future] {
       override def run[A](program: Program[A]): Future[A] = {
         // Future Monadを作るために必要
         // foldMapの第二引数で指定されている
         // Future[_]を作るために必要なメソッドが定義されている
         import cats.instances.future._
-        program.foldMap(interpreter)
+        program.foldMap(interpreter(stockRepository))
       }
     }
   }

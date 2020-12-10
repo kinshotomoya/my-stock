@@ -1,3 +1,3 @@
 package freeMonad.domains
 
-case class SearchResponse()
+case class SearchResponse(stock: Stock)

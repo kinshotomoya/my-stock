@@ -36,6 +36,7 @@ object Actions {
   def searchStocks(
     searchRequest: SearchRequest
   ): Program[Result[SearchResponse]] = {
+    println("vvsvds")
     StockValidator
       .validateSearchRequest(searchRequest)
       .fold(
