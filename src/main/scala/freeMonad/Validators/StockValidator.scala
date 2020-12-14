@@ -35,7 +35,7 @@ object StockValidator {
   private def validateStockCodeIsSmallLetter(
     request: Request
   ): ValidationResult[Request] = {
-    if (request.stockCode.isBigLetter) SizeIsSmallError.invalidNec
+    if (request.stockCode.isContainsBigLetter) SizeIsSmallError.invalidNec
     else request.validNec
   }
 }
