@@ -6,7 +6,8 @@ import freeMonad.domains.{
   RequestError,
   RequestErrors,
   SearchRequest,
-  SearchResponse
+  SearchResponse,
+  Stock
 }
 
 // 1. まず、ASTを作成する
@@ -14,6 +15,8 @@ import freeMonad.domains.{
 object Actions {
   sealed trait Actions[A]
   case class Search(request: SearchRequest)
+      extends Actions[Either[RequestError, SearchResponse]]
+  case class GetNews(stock: Stock)
       extends Actions[Either[RequestError, SearchResponse]]
 
   type Program[A] = Free[Actions, A]
@@ -26,13 +29,19 @@ object Actions {
 
   // executeメソッドで、より抽象化している
   // search以外にも、delete, updateなどもある想定で
+  // TODO: Program[Result[Stock]]を返すようにする
   private def search(request: SearchRequest): Program[Result[SearchResponse]] =
     Free.liftF[Actions, Result[SearchResponse]](Search(request))
+
+  // TODO: Program[Result[News]]を返すようにする
+  private def getNews(stock: Stock): Program[Result[SearchResponse]] =
+    Free.liftF[Actions, Result[SearchResponse]](GetNews(stock))
 
   // 3. 次は、ロジックを作成
   // ここが重要！
   // 副作用を含んでいないので、テストめっちゃしやすくなっている
   // DBとかをモックする必要がない！
+  // TODO: StockとNewsを組み合わせて、SearchResponseを作る
   def searchStocks(
     searchRequest: SearchRequest
   ): Program[Result[SearchResponse]] = {
@@ -47,7 +56,17 @@ object Actions {
               )
             )
         ),
-        request => execute(Search(request))
+        request => {
+          // TODO: EitherTでネストをなくすようにする
+          for {
+            eitherSearchRes <- search(request)
+            result <- eitherSearchRes match {
+              case Right(res) => getNews(res.stock)
+              case Left(error: RequestError) =>
+                Free.pure[Actions, Result[SearchResponse]](Left(error))
+            }
+          } yield result
+        }
       )
   }
 }

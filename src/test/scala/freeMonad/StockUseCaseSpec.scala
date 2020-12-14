@@ -2,7 +2,7 @@ package freeMonad
 
 import cats.~>
 import freeMonad.actions.Actions
-import freeMonad.actions.Actions.{Actions, Program, Result, Search}
+import freeMonad.actions.Actions.{Actions, GetNews, Program, Result, Search}
 import freeMonad.domains._
 import org.scalatest.{FunSpec, Matchers}
 
@@ -16,7 +16,8 @@ class StockUseCaseSpec extends FunSpec with Matchers {
     // interpreterをモックするだけでよくなる！
     val testInterpreter: Actions ~> Future = new (Actions ~> Future) {
       override def apply[A](fa: Actions[A]): Future[A] = fa match {
-        case Search(_) => Future(Right(SearchResponse(Stock())))
+        case Search(_)  => Future(Right(SearchResponse(Stock())))
+        case GetNews(_) => Future(Right(SearchResponse(Stock())))
       }
     }
 
@@ -45,5 +46,7 @@ class StockUseCaseSpec extends FunSpec with Matchers {
         RequestErrors("小文字英数字のみが可能です。")
       )
     }
+
+    // TODO: GetNewsを含んだロジックのテスト
   }
 }

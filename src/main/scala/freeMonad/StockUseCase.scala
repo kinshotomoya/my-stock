@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.dispatch.MessageDispatcher
 import cats.~>
 import freeMonad.actions.Actions
-import freeMonad.actions.Actions.{Actions, Program, Search}
+import freeMonad.actions.Actions.{Actions, GetNews, Program, Search}
 import freeMonad.domains.{RequestErrors, SearchRequest, SearchResponse, Stock}
 
 import scala.concurrent.Future
@@ -26,6 +26,13 @@ object StockUseCase {
     }
   }
 
+  private def getNews(stock: Stock)(
+    implicit useCaseExecutor: MessageDispatcher
+  ): Future[Either[RequestErrors, SearchResponse]] = {
+    // TODO: repositoryのメソッドを呼ぶ
+    Future(Right(SearchResponse(stock)))
+  }
+
   private def interpreter(
     stockRepository: StockRepository
   )(implicit useCaseExecutor: MessageDispatcher): Actions ~> Future = {
@@ -35,6 +42,7 @@ object StockUseCase {
         fa match {
           case Search(request: SearchRequest) =>
             searchStock(request, stockRepository)
+          case GetNews(stock: Stock) => getNews(stock)
         }
       }
     }

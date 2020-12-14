@@ -12,4 +12,6 @@ class StockRepository()(implicit val actorSystem: ActorSystem) {
   def fetchStock(stockCode: StockCode): Future[Option[Stock]] = {
     Future(Some(Stock()))
   }
+
+  // TODO: def fetchNewsを作成
 }
