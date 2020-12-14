@@ -1,0 +1,35 @@
+package freeMonad
+
+import cats.~>
+import freeMonad.actions.Actions
+import freeMonad.actions.Actions.{Actions, Program, Result, Search}
+import freeMonad.domains._
+import org.scalatest.{FunSpec, Matchers}
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
+
+class StockUseCaseSpec extends FunSpec with Matchers {
+  describe("test Actions") {
+
+    implicit val ec = ExecutionContext.global
+    val testInterpreter: Actions ~> Future = new (Actions ~> Future) {
+      override def apply[A](fa: Actions[A]): Future[A] = fa match {
+        case Search(_) => Future(Right(SearchResponse(Stock())))
+      }
+    }
+
+    it("stockCodeが存在しない場合、バリデーションに引っかかる") {
+      // given
+      val searchRequest = SearchRequest(StockCode(""))
+      // when
+      val result: Program[Result[SearchResponse]] =
+        Actions.searchStocks(searchRequest)
+      // then
+      import cats.instances.future._
+      Await.result(result.foldMap(testInterpreter), Duration.Inf) shouldBe Left(
+        RequestErrors("sotckcodeが空です。")
+      )
+    }
+  }
+}

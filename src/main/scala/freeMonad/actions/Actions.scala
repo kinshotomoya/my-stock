@@ -36,13 +36,16 @@ object Actions {
   def searchStocks(
     searchRequest: SearchRequest
   ): Program[Result[SearchResponse]] = {
-    println("vvsvds")
     StockValidator
       .validateSearchRequest(searchRequest)
       .fold(
         errors =>
           Free.pure[Actions, Result[SearchResponse]](
-            Left(RequestErrors(errors.toNonEmptyList.toList.mkString(",")))
+            Left(
+              RequestErrors(
+                errors.toNonEmptyList.toList.map(_.message).mkString(",")
+              )
+            )
         ),
         request => execute(Search(request))
       )

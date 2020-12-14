@@ -6,6 +6,7 @@ val AkkaHttpVersion = "10.2.1"
 val GoogleJuiceVersion = "4.1.0"
 val QuandlVersion = "2.0.0"
 val CatsVersion = "2.1.1"
+val ScalaTestVersion = "3.0.8"
 
 lazy val root = (project in file("."))
   .settings(
@@ -18,6 +19,8 @@ lazy val root = (project in file("."))
       "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
       "org.typelevel" %% "cats-core" % CatsVersion,
       "org.typelevel" %% "cats-free" % CatsVersion,
+      "org.scalactic" %% "scalactic" % ScalaTestVersion,
+      "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
       compilerPlugin(
         "org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full
       )
