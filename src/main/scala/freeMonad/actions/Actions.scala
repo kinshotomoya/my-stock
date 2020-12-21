@@ -1,5 +1,6 @@
 package freeMonad.actions
 
+import cats.data.EitherT
 import cats.free.Free
 import freeMonad.Validators.StockValidator
 import freeMonad.domains.{
@@ -10,7 +11,7 @@ import freeMonad.domains.{
   Stock
 }
 
-// 1. まず、ASTを作成する
+// 1. まず、ADTを作成する
 // 株式を取得するためのSearch Actionをまずは定義
 object Actions {
   sealed trait Actions[A]
@@ -57,15 +58,11 @@ object Actions {
             )
         ),
         request => {
-          // TODO: EitherTでネストをなくすようにする
-          for {
-            eitherSearchRes <- search(request)
-            result <- eitherSearchRes match {
-              case Right(res) => getNews(res.stock)
-              case Left(error: RequestError) =>
-                Free.pure[Actions, Result[SearchResponse]](Left(error))
-            }
-          } yield result
+          val result = for {
+            a <- EitherT(search(request))
+            b <- EitherT(getNews(a.stock))
+          } yield b
+          result.value
         }
       )
   }
